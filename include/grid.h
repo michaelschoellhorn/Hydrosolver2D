@@ -15,6 +15,8 @@ private:
     int activXCells;
     int activYCells;
     int ghostCells;
+    int Nx;
+    int Ny;
     double deltaX;
     double deltaY;
     Mat Q1;
@@ -22,4 +24,5 @@ private:
     Mat Q3;
     void advection1D();
     void sources1D();
+    void borderCondition();
 };
