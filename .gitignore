@@ -1,6 +1,9 @@
 # Local configuration files
 .vscode
 
+# Local workspace files
+ToDo.txt
+
 
 # Compiled Object files
 *.slo

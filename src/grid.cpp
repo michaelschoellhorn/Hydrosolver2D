@@ -1,6 +1,7 @@
 #include "grid.h"
+#include "fluxes.h"
 
-grid::grid(Mat QOne, Mat QTwo, Mat QThree, double deltaX, double deltaY)
+grid::grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double deltaY)
 {
     this->deltaX = deltaX;
     this->deltaY = deltaY;
@@ -23,11 +24,12 @@ grid::grid(Mat QOne, Mat QTwo, Mat QThree, double deltaX, double deltaY)
 
         // Initialize grid matrizes
         Q1 = Mat(Nx, std::vector<double>(Ny, 0.0));
-        Q2 = Mat(Nx, std::vector<double>(Ny, 0.0));
+        Q2x = Mat(Nx, std::vector<double>(Ny, 0.0));
+        Q2y = Mat(Nx, std::vector<double>(Ny, 0.0));
         Q3 = Mat(Nx, std::vector<double>(Ny, 0.0));
 
         // Simple check if dimensions are equal
-        if ((activYCells != QTwo[0].size()) || (activYCells != QThree[0].size()))
+        if ((activYCells != QTwox[0].size()) || (activYCells != QTwoy[0].size()) || (activYCells != QThree[0].size()))
         {
             std::cout << "Dimensions of QOne QTwo and QThree don't match!" << std::endl;
         }
@@ -39,7 +41,8 @@ grid::grid(Mat QOne, Mat QTwo, Mat QThree, double deltaX, double deltaY)
                 {
                     // Set values to the grid
                     Q1[i][j] = QOne[i - ghostCells][j - ghostCells];
-                    Q2[i][j] = QTwo[i - ghostCells][j - ghostCells];
+                    Q2x[i][j] = QTwox[i - ghostCells][j - ghostCells];
+                    Q2y[i][j] = QTwoy[i - ghostCells][j - ghostCells];
                     Q3[i][j] = QThree[i - ghostCells][j - ghostCells];
                 }
             }
@@ -65,31 +68,37 @@ void grid::print()
     }
 }
 
-void grid::borderCondition()
+void grid::xBorderCondition()
 {
     for (int x = 0; x < ghostCells; ++x)
     {
         for (int y = ghostCells; y < Ny - ghostCells; ++y)
         {
             Q1[x][y] = Q1[activXCells + x][y];
-            Q2[x][y] = Q2[activXCells + x][y];
+            Q2x[x][y] = Q2x[activXCells + x][y];
             Q3[x][y] = Q3[activXCells + x][y];
 
             Q1[Nx - ghostCells + x][y] = Q1[ghostCells + x][y];
-            Q2[Nx - ghostCells + x][y] = Q2[ghostCells + x][y];
+            Q2x[Nx - ghostCells + x][y] = Q2x[ghostCells + x][y];
             Q3[Nx - ghostCells + x][y] = Q3[ghostCells + x][y];
         }
     }
+}
+
+void grid::yBorderCondition()
+{
     for (int y = 0; y < ghostCells; ++y)
     {
         for (int x = ghostCells; x < Nx - ghostCells; ++x)
         {
             Q1[x][y] = Q1[x][activYCells + y];
-            Q2[x][y] = Q2[x][activYCells + y];
+            Q2x[x][y] = Q2x[x][activYCells + y];
+            Q2y[x][y] = Q2y[x][activYCells + y];
             Q3[x][y] = Q3[x][activYCells + y];
 
             Q1[x][Ny - ghostCells + y] = Q1[x][ghostCells + y];
-            Q2[x][Ny - ghostCells + y] = Q2[x][ghostCells + y];
+            Q2x[x][Ny - ghostCells + y] = Q2x[x][ghostCells + y];
+            Q2y[x][Ny - ghostCells + y] = Q2y[x][ghostCells + y];
             Q3[x][Ny - ghostCells + y] = Q3[x][ghostCells + y];
         }
     }
@@ -97,11 +106,76 @@ void grid::borderCondition()
 
 void grid::update()
 {
-    borderCondition();
+    xBorderCondition();
+    yBorderCondition();
+    xSweep();
+    xBorderCondition();
+    ySweep();
+    yBorderCondition();
 }
 
-void grid::advection1D()
+void grid::xSweep()
 {
+    // Initialize flux vectors
+    std::vector<double> F1(Ny, 0.0);
+    std::vector<double> F2x(Ny, 0.0);
+    std::vector<double> F2y(Ny, 0.0);
+    std::vector<double> F3(Ny, 0.0);
+
+    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
+    {
+        // calculating fluxes
+        double ux;
+        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
+        {
+            ux = Q2x[x][y] / (Q1[x][y] + 1E-16);
+            F1[x] = flux(donorCell, Q1[x - 2][y], Q1[x - 1][y], Q1[x][y], Q1[x + 1][y], ux, 0.1, deltaX);
+            F2x[x] = flux(donorCell, Q2x[x - 2][y], Q2x[x - 1][y], Q2x[x][y], Q2x[x + 1][y], ux, 0.1, deltaX);
+            F2y[x] = flux(donorCell, Q2y[x - 2][y], Q2y[x - 1][y], Q2y[x][y], Q2y[x + 1][y], ux, 0.1, deltaX);
+            F3[x] = flux(donorCell, Q3[x - 2][y], Q3[x - 1][y], Q3[x][y], Q3[x + 1][y], ux, 0.1, deltaX);
+        }
+        // calculating Qhalf
+        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
+        {
+
+            Q1[x][y] += 0.5 * (F1[x] + F1[x + 1]);
+            Q2x[x][y] += 0.5 * (F2x[x] + F2x[x + 1]);
+            Q2y[x][y] += 0.5 * (F2y[x] + F2y[x + 1]);
+            Q3[x][y] += 0.5 * (F3[x] + F3[x + 1]);
+        }
+    }
+}
+
+void grid::ySweep()
+{
+    // Initialize flux vectors
+    std::vector<double> F1(Ny, 0.0);
+    std::vector<double> F2x(Ny, 0.0);
+    std::vector<double> F2y(Ny, 0.0);
+    std::vector<double> F3(Ny, 0.0);
+
+    for (int x = ghostCells; x < activXCells + ghostCells; ++x)
+    {
+        // calculating fluxes
+        double uy;
+        for (int y = ghostCells; y < activYCells + ghostCells; ++y)
+        {
+            uy = Q2y[x][y] / (Q1[x][y] + 1E-16);
+            F1[y] = flux(donorCell, Q1[x][y - 2], Q1[x][y - 1], Q1[x][y], Q1[x][y + 1], uy, 0.1, deltaY);
+            F2x[y] = flux(donorCell, Q2x[x][y - 2], Q2x[x][y - 1], Q2x[x][y], Q2x[x][y + 1], uy, 0.1, deltaY);
+            F2y[y] = flux(donorCell, Q2y[x][y - 2], Q2y[x][y - 1], Q2y[x][y], Q2y[x][y + 1], uy, 0.1, deltaY);
+            F3[y] = flux(donorCell, Q3[x][y - 2], Q3[x][y - 1], Q3[x][y], Q3[x][y + 1], uy, 0.1, deltaY);
+        }
+        // calculating Qhalf
+        for (int y = ghostCells; y < activYCells + ghostCells; ++y)
+        {
+
+            Q1[x][y] += 0.5 * (F1[y] + F1[y + 1]);
+            Q2x[x][y] += 0.5 * (F2x[y] + F2x[y + 1]);
+            Q2y[x][y] += 0.5 * (F2y[y] + F2y[y + 1]);
+            Q3[x][y] += 0.5 * (F3[y] + F3[y + 1]);
+        }
+    }
 }
 
 void grid::sources1D()

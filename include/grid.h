@@ -7,7 +7,7 @@ typedef std::vector<std::vector<double>> Mat;
 class grid
 {
 public:
-    grid(Mat QOne, Mat QTwo, Mat QThree, double deltaX, double deltaY);
+    grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double deltaY);
     void update();
     void print();
 
@@ -20,9 +20,12 @@ private:
     double deltaX;
     double deltaY;
     Mat Q1;
-    Mat Q2;
+    Mat Q2x;
+    Mat Q2y;
     Mat Q3;
-    void advection1D();
+    void xSweep();
+    void ySweep();
     void sources1D();
-    void borderCondition();
+    void xBorderCondition();
+    void yBorderCondition();
 };
