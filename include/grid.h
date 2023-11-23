@@ -19,13 +19,16 @@ private:
     int Ny;
     double deltaX;
     double deltaY;
+    double deltaT;
     Mat Q1;
     Mat Q2x;
     Mat Q2y;
     Mat Q3;
     void xSweep();
     void ySweep();
-    void sources1D();
+    Mat pressure();
+    void xSources(Mat p);
+    void ySources(Mat p);
     void xBorderCondition();
     void yBorderCondition();
 };

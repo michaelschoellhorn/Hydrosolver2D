@@ -1,10 +1,12 @@
 #include "grid.h"
 #include "fluxes.h"
+#include "pressures.h"
 
 grid::grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double deltaY)
 {
     this->deltaX = deltaX;
     this->deltaY = deltaY;
+    this->deltaT = 0.1;
     if (!QOne.empty())
     {
         // Get number of rows
@@ -106,21 +108,30 @@ void grid::yBorderCondition()
 
 void grid::update()
 {
-    xBorderCondition();
-    yBorderCondition();
-    xSweep();
-    xBorderCondition();
-    ySweep();
-    yBorderCondition();
+    for (size_t i = 0; i < 3; i++)
+    {
+
+        xBorderCondition();
+        yBorderCondition();
+        xSweep();
+        xBorderCondition();
+        ySweep();
+        yBorderCondition();
+        Mat p = pressure();
+        xSources(p);
+        ySources(p);
+        xBorderCondition();
+        yBorderCondition();
+    }
 }
 
 void grid::xSweep()
 {
     // Initialize flux vectors
-    std::vector<double> F1(Ny, 0.0);
-    std::vector<double> F2x(Ny, 0.0);
-    std::vector<double> F2y(Ny, 0.0);
-    std::vector<double> F3(Ny, 0.0);
+    std::vector<double> F1(Nx, 0.0);
+    std::vector<double> F2x(Nx, 0.0);
+    std::vector<double> F2y(Nx, 0.0);
+    std::vector<double> F3(Nx, 0.0);
 
     for (int y = ghostCells; y < activYCells + ghostCells; ++y)
     {
@@ -138,10 +149,10 @@ void grid::xSweep()
         for (int x = ghostCells; x < activXCells + ghostCells; ++x)
         {
 
-            Q1[x][y] += 0.5 * (F1[x] + F1[x + 1]);
-            Q2x[x][y] += 0.5 * (F2x[x] + F2x[x + 1]);
-            Q2y[x][y] += 0.5 * (F2y[x] + F2y[x + 1]);
-            Q3[x][y] += 0.5 * (F3[x] + F3[x + 1]);
+            Q1[x][y] -= deltaT / deltaX * (F1[x] + F1[x + 1]);
+            Q2x[x][y] -= deltaT / deltaX * (F2x[x] + F2x[x + 1]);
+            Q2y[x][y] -= deltaT / deltaX * (F2y[x] + F2y[x + 1]);
+            Q3[x][y] -= deltaT / deltaX * (F3[x] + F3[x + 1]);
         }
     }
 }
@@ -170,14 +181,47 @@ void grid::ySweep()
         for (int y = ghostCells; y < activYCells + ghostCells; ++y)
         {
 
-            Q1[x][y] += 0.5 * (F1[y] + F1[y + 1]);
-            Q2x[x][y] += 0.5 * (F2x[y] + F2x[y + 1]);
-            Q2y[x][y] += 0.5 * (F2y[y] + F2y[y + 1]);
-            Q3[x][y] += 0.5 * (F3[y] + F3[y + 1]);
+            Q1[x][y] -= deltaT / deltaY * (F1[y] + F1[y + 1]);
+            Q2x[x][y] -= deltaT / deltaY * (F2x[y] + F2x[y + 1]);
+            Q2y[x][y] -= deltaT / deltaY * (F2y[y] + F2y[y + 1]);
+            Q3[x][y] -= deltaT / deltaY * (F3[y] + F3[y + 1]);
         }
     }
 }
 
-void grid::sources1D()
+Mat grid::pressure()
 {
+    Mat p(Nx, std::vector<double>(Ny, 0.0));
+    for (int y = ghostCells - 1; y < activYCells + ghostCells + 1; ++y)
+    {
+        for (int x = ghostCells - 1; x < activXCells + ghostCells + 1; ++x)
+        {
+            p[x][y] = idealPressure(1.4, Q1[x][y], Q2x[x][y], Q2y[x][y], Q3[x][y]);
+        }
+    }
+    return p;
+}
+
+void grid::xSources(Mat p)
+{
+    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
+    {
+        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
+        {
+            Q2x[x][y] -= deltaT / (2 * deltaX) * (p[x + 1][y] - p[x + -1][y]);
+            Q3[x][y] -= deltaT / (2 * deltaX) * (p[x + 1][y] * Q2x[x + 1][y] / (Q1[x + 1][y] + 1E-16) - p[x - 1][y] * Q2x[x - 1][y] / (Q1[x - 1][y] + 1E-16));
+        }
+    }
+}
+
+void grid::ySources(Mat p)
+{
+    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
+    {
+        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
+        {
+            Q2y[x][y] -= deltaT / (2 * deltaY) * (p[x][y + 1] - p[x][y - 1]);
+            Q3[x][y] -= deltaT / (2 * deltaY) * (p[x][y + 1] * Q2x[x][y + 1] / (Q1[x][y + 1] + 1E-16) - p[x][y - 1] * Q2x[x][y - 1] / (Q1[x][y - 1] + 1E-16));
+        }
+    }
 }

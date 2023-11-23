@@ -1,6 +1,5 @@
 # pragma once
 #include <cmath>
-#include <vector>
 #include <algorithm>
 
 inline double heavySide(const double x)
