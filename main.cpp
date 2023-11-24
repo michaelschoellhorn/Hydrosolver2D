@@ -10,9 +10,8 @@ int main()
     Mat QOne(10, std::vector<double>(10, 1.0));
     Mat QTwox(10, std::vector<double>(10, 1.0));
     Mat QTwoy(10, std::vector<double>(10, 0.0));
-    Mat QThree(10, std::vector<double>(10, 0.0));
+    Mat QThree(10, std::vector<double>(10, 1.0));
     grid A(QOne, QTwox, QTwoy, QThree, 0.1, 0.1);
     A.print();
     A.update();
-    A.print();
 }

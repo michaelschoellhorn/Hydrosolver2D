@@ -6,7 +6,7 @@ grid::grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double del
 {
     this->deltaX = deltaX;
     this->deltaY = deltaY;
-    this->deltaT = 0.1;
+    this->deltaT = 0.02;
     if (!QOne.empty())
     {
         // Get number of rows
@@ -108,18 +108,25 @@ void grid::yBorderCondition()
 
 void grid::update()
 {
-    for (size_t i = 0; i < 3; i++)
+    for (size_t i = 0; i < 2; i++)
     {
 
         xBorderCondition();
         yBorderCondition();
+        print();
         xSweep();
         xBorderCondition();
-        ySweep();
         yBorderCondition();
+        print();
+        ySweep();
+        xBorderCondition();
+        yBorderCondition();
+        print();
         Mat p = pressure();
         xSources(p);
+        print();
         ySources(p);
+        print();
         xBorderCondition();
         yBorderCondition();
     }
@@ -137,22 +144,22 @@ void grid::xSweep()
     {
         // calculating fluxes
         double ux;
-        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
+        for (int x = ghostCells; x < activXCells + ghostCells + 1; ++x)
         {
             ux = Q2x[x][y] / (Q1[x][y] + 1E-16);
-            F1[x] = flux(donorCell, Q1[x - 2][y], Q1[x - 1][y], Q1[x][y], Q1[x + 1][y], ux, 0.1, deltaX);
-            F2x[x] = flux(donorCell, Q2x[x - 2][y], Q2x[x - 1][y], Q2x[x][y], Q2x[x + 1][y], ux, 0.1, deltaX);
-            F2y[x] = flux(donorCell, Q2y[x - 2][y], Q2y[x - 1][y], Q2y[x][y], Q2y[x + 1][y], ux, 0.1, deltaX);
-            F3[x] = flux(donorCell, Q3[x - 2][y], Q3[x - 1][y], Q3[x][y], Q3[x + 1][y], ux, 0.1, deltaX);
+            F1[x] = flux(donorCell, Q1[x - 2][y], Q1[x - 1][y], Q1[x][y], Q1[x + 1][y], ux, deltaT, deltaX);
+            F2x[x] = flux(donorCell, Q2x[x - 2][y], Q2x[x - 1][y], Q2x[x][y], Q2x[x + 1][y], ux, deltaT, deltaX);
+            F2y[x] = flux(donorCell, Q2y[x - 2][y], Q2y[x - 1][y], Q2y[x][y], Q2y[x + 1][y], ux, deltaT, deltaX);
+            F3[x] = flux(donorCell, Q3[x - 2][y], Q3[x - 1][y], Q3[x][y], Q3[x + 1][y], ux, deltaT, deltaX);
         }
         // calculating Qhalf
         for (int x = ghostCells; x < activXCells + ghostCells; ++x)
         {
 
-            Q1[x][y] -= deltaT / deltaX * (F1[x] + F1[x + 1]);
-            Q2x[x][y] -= deltaT / deltaX * (F2x[x] + F2x[x + 1]);
-            Q2y[x][y] -= deltaT / deltaX * (F2y[x] + F2y[x + 1]);
-            Q3[x][y] -= deltaT / deltaX * (F3[x] + F3[x + 1]);
+            Q1[x][y] += deltaT / deltaX * (F1[x] - F1[x + 1]);
+            Q2x[x][y] += deltaT / deltaX * (F2x[x] - F2x[x + 1]);
+            Q2y[x][y] += deltaT / deltaX * (F2y[x] - F2y[x + 1]);
+            Q3[x][y] += deltaT / deltaX * (F3[x] - F3[x + 1]);
         }
     }
 }
@@ -169,22 +176,22 @@ void grid::ySweep()
     {
         // calculating fluxes
         double uy;
-        for (int y = ghostCells; y < activYCells + ghostCells; ++y)
+        for (int y = ghostCells; y < activYCells + ghostCells + 1; ++y)
         {
             uy = Q2y[x][y] / (Q1[x][y] + 1E-16);
-            F1[y] = flux(donorCell, Q1[x][y - 2], Q1[x][y - 1], Q1[x][y], Q1[x][y + 1], uy, 0.1, deltaY);
-            F2x[y] = flux(donorCell, Q2x[x][y - 2], Q2x[x][y - 1], Q2x[x][y], Q2x[x][y + 1], uy, 0.1, deltaY);
-            F2y[y] = flux(donorCell, Q2y[x][y - 2], Q2y[x][y - 1], Q2y[x][y], Q2y[x][y + 1], uy, 0.1, deltaY);
-            F3[y] = flux(donorCell, Q3[x][y - 2], Q3[x][y - 1], Q3[x][y], Q3[x][y + 1], uy, 0.1, deltaY);
+            F1[y] = flux(donorCell, Q1[x][y - 2], Q1[x][y - 1], Q1[x][y], Q1[x][y + 1], uy, deltaT, deltaY);
+            F2x[y] = flux(donorCell, Q2x[x][y - 2], Q2x[x][y - 1], Q2x[x][y], Q2x[x][y + 1], uy, deltaT, deltaY);
+            F2y[y] = flux(donorCell, Q2y[x][y - 2], Q2y[x][y - 1], Q2y[x][y], Q2y[x][y + 1], uy, deltaT, deltaY);
+            F3[y] = flux(donorCell, Q3[x][y - 2], Q3[x][y - 1], Q3[x][y], Q3[x][y + 1], uy, deltaT, deltaY);
         }
         // calculating Qhalf
         for (int y = ghostCells; y < activYCells + ghostCells; ++y)
         {
 
-            Q1[x][y] -= deltaT / deltaY * (F1[y] + F1[y + 1]);
-            Q2x[x][y] -= deltaT / deltaY * (F2x[y] + F2x[y + 1]);
-            Q2y[x][y] -= deltaT / deltaY * (F2y[y] + F2y[y + 1]);
-            Q3[x][y] -= deltaT / deltaY * (F3[y] + F3[y + 1]);
+            Q1[x][y] += deltaT / deltaY * (F1[y] - F1[y + 1]);
+            Q2x[x][y] += deltaT / deltaY * (F2x[y] - F2x[y + 1]);
+            Q2y[x][y] += deltaT / deltaY * (F2y[y] - F2y[y + 1]);
+            Q3[x][y] += deltaT / deltaY * (F3[y] - F3[y + 1]);
         }
     }
 }
