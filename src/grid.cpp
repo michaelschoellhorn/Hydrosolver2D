@@ -106,6 +106,27 @@ void grid::yBorderCondition()
     }
 }
 
+Mat grid::pBorderCondition(Mat p)
+{
+    for (int y = 0; y < ghostCells; ++y)
+    {
+        for (int x = ghostCells; x < Nx - ghostCells; ++x)
+        {
+            p[x][y] = p[x][activYCells + y];
+            p[x][Ny - ghostCells + y] = p[x][ghostCells + y];
+        }
+    }
+    for (int x = 0; x < ghostCells; ++x)
+    {
+        for (int y = ghostCells; y < Ny - ghostCells; ++y)
+        {
+            p[x][y] = p[activXCells + x][y];
+            p[Nx - ghostCells + x][y] = p[ghostCells + x][y];
+        }
+    }
+    return p;
+}
+
 void grid::update()
 {
     for (size_t i = 0; i < 2; i++)
@@ -123,7 +144,10 @@ void grid::update()
         yBorderCondition();
         print();
         Mat p = pressure();
+        p = pBorderCondition(p);
         xSources(p);
+        xBorderCondition();
+        yBorderCondition();
         print();
         ySources(p);
         print();
@@ -199,9 +223,9 @@ void grid::ySweep()
 Mat grid::pressure()
 {
     Mat p(Nx, std::vector<double>(Ny, 0.0));
-    for (int y = ghostCells - 1; y < activYCells + ghostCells + 1; ++y)
+    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
     {
-        for (int x = ghostCells - 1; x < activXCells + ghostCells + 1; ++x)
+        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
         {
             p[x][y] = idealPressure(1.4, Q1[x][y], Q2x[x][y], Q2y[x][y], Q3[x][y]);
         }
@@ -215,7 +239,7 @@ void grid::xSources(Mat p)
     {
         for (int x = ghostCells; x < activXCells + ghostCells; ++x)
         {
-            Q2x[x][y] -= deltaT / (2 * deltaX) * (p[x + 1][y] - p[x + -1][y]);
+            Q2x[x][y] -= deltaT / (2 * deltaX) * (p[x + 1][y] - p[x - 1][y]);
             Q3[x][y] -= deltaT / (2 * deltaX) * (p[x + 1][y] * Q2x[x + 1][y] / (Q1[x + 1][y] + 1E-16) - p[x - 1][y] * Q2x[x - 1][y] / (Q1[x - 1][y] + 1E-16));
         }
     }
@@ -228,7 +252,7 @@ void grid::ySources(Mat p)
         for (int x = ghostCells; x < activXCells + ghostCells; ++x)
         {
             Q2y[x][y] -= deltaT / (2 * deltaY) * (p[x][y + 1] - p[x][y - 1]);
-            Q3[x][y] -= deltaT / (2 * deltaY) * (p[x][y + 1] * Q2x[x][y + 1] / (Q1[x][y + 1] + 1E-16) - p[x][y - 1] * Q2x[x][y - 1] / (Q1[x][y - 1] + 1E-16));
+            Q3[x][y] -= deltaT / (2 * deltaY) * (p[x][y + 1] * Q2y[x][y + 1] / (Q1[x][y + 1] + 1E-16) - p[x][y - 1] * Q2y[x][y - 1] / (Q1[x][y - 1] + 1E-16));
         }
     }
 }

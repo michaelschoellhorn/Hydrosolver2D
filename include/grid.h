@@ -31,4 +31,5 @@ private:
     void ySources(Mat p);
     void xBorderCondition();
     void yBorderCondition();
+    Mat pBorderCondition(Mat p);
 };
