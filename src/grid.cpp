@@ -78,10 +78,12 @@ void grid::xBorderCondition()
         {
             Q1[x][y] = Q1[activXCells + x][y];
             Q2x[x][y] = Q2x[activXCells + x][y];
+            Q2y[x][y] = Q2y[activXCells + x][y];
             Q3[x][y] = Q3[activXCells + x][y];
 
             Q1[Nx - ghostCells + x][y] = Q1[ghostCells + x][y];
             Q2x[Nx - ghostCells + x][y] = Q2x[ghostCells + x][y];
+            Q2y[Nx - ghostCells + x][y] = Q2y[ghostCells + x][y];
             Q3[Nx - ghostCells + x][y] = Q3[ghostCells + x][y];
         }
     }
@@ -129,30 +131,28 @@ Mat grid::pBorderCondition(Mat p)
 
 void grid::update()
 {
-    for (size_t i = 0; i < 2; i++)
+    for (size_t i = 0; i < 200; i++)
     {
 
         xBorderCondition();
         yBorderCondition();
-        print();
         xSweep();
         xBorderCondition();
         yBorderCondition();
-        print();
-        ySweep();
-        xBorderCondition();
-        yBorderCondition();
-        print();
         Mat p = pressure();
         p = pBorderCondition(p);
         xSources(p);
         xBorderCondition();
         yBorderCondition();
-        print();
-        ySources(p);
-        print();
+        ySweep();
         xBorderCondition();
         yBorderCondition();
+        p = pressure();
+        p = pBorderCondition(p);
+        ySources(p);
+        xBorderCondition();
+        yBorderCondition();
+        print();
     }
 }
 
