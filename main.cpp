@@ -11,10 +11,10 @@ int main()
     QOne[5][5] = 3.0;
     Mat QTwox(10, std::vector<double>(10, 1.0));
     QTwox[5][5] = 3.0;
-    Mat QTwoy(10, std::vector<double>(10, 0.0));
-    Mat QThree(10, std::vector<double>(10, 2.0));
-    QThree[5][5] = 6.0;
+    Mat QTwoy(10, std::vector<double>(10, 1.0));
+    Mat QThree(10, std::vector<double>(10, 3.0));
+    QThree[5][5] = 7.0;
     grid A(QOne, QTwox, QTwoy, QThree, 0.1, 0.1);
     A.print();
-    A.advUpdate();
+    A.update(100);
 }
