@@ -58,7 +58,7 @@ grid::grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double del
 
 void grid::print()
 {
-    // Function to print Q1
+    // Q1
     std::cout << "Q1: \n";
     for (const auto &element : Q1)
     {
@@ -68,6 +68,17 @@ void grid::print()
         }
         std::cout << std::endl;
     }
+    // Q2x
+    std::cout << "Q2x: \n";
+    for (const auto &element : Q2x)
+    {
+        for (const auto elem : element)
+        {
+            std::cout << elem << " ";
+        }
+        std::cout << std::endl;
+    }
+
 }
 
 void grid::xBorderCondition()
@@ -131,32 +142,47 @@ Mat grid::pBorderCondition(Mat p)
 
 void grid::update()
 {
-    for (size_t i = 0; i < 200; i++)
+    xBorderCondition();
+    yBorderCondition();
+    for (size_t i = 0; i < 5; i++)
     {
-
-        xBorderCondition();
-        yBorderCondition();
-        xSweep();
-        xBorderCondition();
-        yBorderCondition();
-        Mat p = pressure();
-        p = pBorderCondition(p);
+        // xSweep ySweep
+        xAdvection(minMod);
+        Mat p = uPressure();
         xSources(p);
-        xBorderCondition();
-        yBorderCondition();
-        ySweep();
-        xBorderCondition();
-        yBorderCondition();
-        p = pressure();
-        p = pBorderCondition(p);
+        yAdvection(minMod);
+        p = vPressure();
         ySources(p);
-        xBorderCondition();
-        yBorderCondition();
+
+        // ySweep xSweep
+        yAdvection(minMod);
+        p = vPressure();
+        ySources(p);
+        xAdvection(minMod);
+        p = uPressure();
+        xSources(p);
         print();
     }
 }
 
-void grid::xSweep()
+void grid::advUpdate()
+{
+    xBorderCondition();
+    yBorderCondition();
+    for (size_t i = 0; i < 5; i++)
+    {
+        // xSweep ySweep
+        xAdvection(minMod);
+        yAdvection(minMod);
+
+        // ySweep xSweep
+        yAdvection(minMod);
+        xAdvection(minMod);
+        print();
+    }
+}
+
+void grid::xAdvection(double func(double))
 {
     // Initialize flux vectors
     std::vector<double> F1(Nx, 0.0);
@@ -171,10 +197,10 @@ void grid::xSweep()
         for (int x = ghostCells; x < activXCells + ghostCells + 1; ++x)
         {
             ux = Q2x[x][y] / (Q1[x][y] + 1E-16);
-            F1[x] = flux(donorCell, Q1[x - 2][y], Q1[x - 1][y], Q1[x][y], Q1[x + 1][y], ux, deltaT, deltaX);
-            F2x[x] = flux(donorCell, Q2x[x - 2][y], Q2x[x - 1][y], Q2x[x][y], Q2x[x + 1][y], ux, deltaT, deltaX);
-            F2y[x] = flux(donorCell, Q2y[x - 2][y], Q2y[x - 1][y], Q2y[x][y], Q2y[x + 1][y], ux, deltaT, deltaX);
-            F3[x] = flux(donorCell, Q3[x - 2][y], Q3[x - 1][y], Q3[x][y], Q3[x + 1][y], ux, deltaT, deltaX);
+            F1[x] = flux(func, Q1[x - 2][y], Q1[x - 1][y], Q1[x][y], Q1[x + 1][y], ux, deltaT, deltaX);
+            F2x[x] = flux(func, Q2x[x - 2][y], Q2x[x - 1][y], Q2x[x][y], Q2x[x + 1][y], ux, deltaT, deltaX);
+            F2y[x] = flux(func, Q2y[x - 2][y], Q2y[x - 1][y], Q2y[x][y], Q2y[x + 1][y], ux, deltaT, deltaX);
+            F3[x] = flux(func, Q3[x - 2][y], Q3[x - 1][y], Q3[x][y], Q3[x + 1][y], ux, deltaT, deltaX);
         }
         // calculating Qhalf
         for (int x = ghostCells; x < activXCells + ghostCells; ++x)
@@ -186,9 +212,11 @@ void grid::xSweep()
             Q3[x][y] += deltaT / deltaX * (F3[x] - F3[x + 1]);
         }
     }
+    xBorderCondition();
+    yBorderCondition();
 }
 
-void grid::ySweep()
+void grid::yAdvection(double func(double))
 {
     // Initialize flux vectors
     std::vector<double> F1(Ny, 0.0);
@@ -203,10 +231,10 @@ void grid::ySweep()
         for (int y = ghostCells; y < activYCells + ghostCells + 1; ++y)
         {
             uy = Q2y[x][y] / (Q1[x][y] + 1E-16);
-            F1[y] = flux(donorCell, Q1[x][y - 2], Q1[x][y - 1], Q1[x][y], Q1[x][y + 1], uy, deltaT, deltaY);
-            F2x[y] = flux(donorCell, Q2x[x][y - 2], Q2x[x][y - 1], Q2x[x][y], Q2x[x][y + 1], uy, deltaT, deltaY);
-            F2y[y] = flux(donorCell, Q2y[x][y - 2], Q2y[x][y - 1], Q2y[x][y], Q2y[x][y + 1], uy, deltaT, deltaY);
-            F3[y] = flux(donorCell, Q3[x][y - 2], Q3[x][y - 1], Q3[x][y], Q3[x][y + 1], uy, deltaT, deltaY);
+            F1[y] = flux(func, Q1[x][y - 2], Q1[x][y - 1], Q1[x][y], Q1[x][y + 1], uy, deltaT, deltaY);
+            F2x[y] = flux(func, Q2x[x][y - 2], Q2x[x][y - 1], Q2x[x][y], Q2x[x][y + 1], uy, deltaT, deltaY);
+            F2y[y] = flux(func, Q2y[x][y - 2], Q2y[x][y - 1], Q2y[x][y], Q2y[x][y + 1], uy, deltaT, deltaY);
+            F3[y] = flux(func, Q3[x][y - 2], Q3[x][y - 1], Q3[x][y], Q3[x][y + 1], uy, deltaT, deltaY);
         }
         // calculating Qhalf
         for (int y = ghostCells; y < activYCells + ghostCells; ++y)
@@ -218,6 +246,8 @@ void grid::ySweep()
             Q3[x][y] += deltaT / deltaY * (F3[y] - F3[y + 1]);
         }
     }
+    xBorderCondition();
+    yBorderCondition();
 }
 
 Mat grid::pressure()
@@ -230,7 +260,33 @@ Mat grid::pressure()
             p[x][y] = idealPressure(1.4, Q1[x][y], Q2x[x][y], Q2y[x][y], Q3[x][y]);
         }
     }
-    return p;
+    return pBorderCondition(p);
+}
+
+Mat grid::uPressure()
+{
+    Mat p(Nx, std::vector<double>(Ny, 0.0));
+    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
+    {
+        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
+        {
+            p[x][y] = viscIdealPressure(2.0, 1.4, Q1[x][y], Q2x[x][y], Q2y[x][y], Q3[x][y], Q1[x - 1][y], Q2x[x - 1][y], Q1[x + 1][y], Q2x[x + 1][y]);
+        }
+    }
+    return pBorderCondition(p);
+}
+
+Mat grid::vPressure()
+{
+    Mat p(Nx, std::vector<double>(Ny, 0.0));
+    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
+    {
+        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
+        {
+            p[x][y] = viscIdealPressure(2.0, 1.4, Q1[x][y], Q2x[x][y], Q2y[x][y], Q3[x][y], Q1[x][y - 1], Q2y[x][y - 1], Q1[x][y + 1], Q2y[x][y + 1]);
+        }
+    }
+    return pBorderCondition(p);
 }
 
 void grid::xSources(Mat p)
@@ -243,6 +299,8 @@ void grid::xSources(Mat p)
             Q3[x][y] -= deltaT / (2 * deltaX) * (p[x + 1][y] * Q2x[x + 1][y] / (Q1[x + 1][y] + 1E-16) - p[x - 1][y] * Q2x[x - 1][y] / (Q1[x - 1][y] + 1E-16));
         }
     }
+    xBorderCondition();
+    yBorderCondition();
 }
 
 void grid::ySources(Mat p)
@@ -255,4 +313,6 @@ void grid::ySources(Mat p)
             Q3[x][y] -= deltaT / (2 * deltaY) * (p[x][y + 1] * Q2y[x][y + 1] / (Q1[x][y + 1] + 1E-16) - p[x][y - 1] * Q2y[x][y - 1] / (Q1[x][y - 1] + 1E-16));
         }
     }
+    xBorderCondition();
+    yBorderCondition();
 }

@@ -8,6 +8,7 @@ class grid
 {
 public:
     grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double deltaY);
+    void advUpdate();
     void update();
     void print();
 
@@ -24,9 +25,11 @@ private:
     Mat Q2x;
     Mat Q2y;
     Mat Q3;
-    void xSweep();
-    void ySweep();
+    void xAdvection(double func (double));
+    void yAdvection(double func (double));
     Mat pressure();
+    Mat uPressure();
+    Mat vPressure();
     void xSources(Mat p);
     void ySources(Mat p);
     void xBorderCondition();
