@@ -140,11 +140,11 @@ Mat grid::pBorderCondition(Mat p)
     return p;
 }
 
-void grid::update()
+void grid::update(int nSteps)
 {
     xBorderCondition();
     yBorderCondition();
-    for (size_t i = 0; i < 5; i++)
+    for (size_t i = 0; i < nSteps; i++)
     {
         // xSweep ySweep
         xAdvection(minMod);
@@ -165,11 +165,11 @@ void grid::update()
     }
 }
 
-void grid::advUpdate()
+void grid::advUpdate(int nSteps)
 {
     xBorderCondition();
     yBorderCondition();
-    for (size_t i = 0; i < 5; i++)
+    for (size_t i = 0; i < nSteps; i++)
     {
         // xSweep ySweep
         xAdvection(minMod);

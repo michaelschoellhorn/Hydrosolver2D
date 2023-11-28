@@ -8,8 +8,8 @@ class grid
 {
 public:
     grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double deltaY);
-    void advUpdate();
-    void update();
+    void advUpdate(int nSteps);
+    void update(int nSteps);
     void print();
 
 private:
