@@ -23,6 +23,7 @@ inline double viscIdealPressure(double visc, double gamma, double rho, double rh
     return p;
 }
 /*
+// old pressure function, depreciated
 inline double viscIdealPressure(double visc, double gamma, double rho, double rhoU, double rhoV, double rhoE, double rhoMin1, double rhoUMin1, double rhoVMin1, double rhoP1, double rhoUP1, double rhoVP1){
     double p = idealPressure(gamma, rho, rhoU, rhoV, rhoE);
     double uP1 = rhoUP1 / (rhoP1 + 1E-16);

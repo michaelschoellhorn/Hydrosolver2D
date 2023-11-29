@@ -7,14 +7,27 @@ int main()
     std::cout
         << f << std::endl;
     // Mat QOne({std::vector<double>({1.5, 2.0, 3.5, 4.0}), std::vector<double>({1.0, 2.0, 3.0, 4.0}), std::vector<double>({5.0, 6.0, 7.0, 8.0}), std::vector<double>({5.0, 6.0, 7.0, 8.0})});
-    Mat QOne(10, std::vector<double>(10, 1.0));
-    QOne[5][5] = 3.0;
-    Mat QTwox(10, std::vector<double>(10, 1.0));
-    QTwox[5][5] = 3.0;
-    Mat QTwoy(10, std::vector<double>(10, 1.0));
-    Mat QThree(10, std::vector<double>(10, 3.0));
-    QThree[5][5] = 7.0;
+    Mat QOne(40, std::vector<double>(40, 1.0));
+    for (size_t i = 0; i < 20; i++)
+    {
+        for (size_t j = 0; j < 20; j++)
+        {
+            QOne[i][j] = 2.0;
+        }
+        
+    }
+    Mat QTwox(40, std::vector<double>(40, 0.0));
+    Mat QTwoy(40, std::vector<double>(40, 0.0));
+    Mat QThree(40, std::vector<double>(40, 1.0));
+    for (size_t i = 0; i < 20; i++)
+    {
+        for (size_t j = 0; j < 20; j++)
+        {
+            QThree[i][j] = 2.0;
+        }
+    }
     grid A(QOne, QTwox, QTwoy, QThree, 0.1, 0.1);
     A.print();
-    A.update(100);
+    A.update(20);
+    A.update(20);
 }
