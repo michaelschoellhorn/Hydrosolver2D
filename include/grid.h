@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <iomanip>
 
 typedef std::vector<std::vector<double>> Mat;
 
@@ -10,6 +11,7 @@ public:
     grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double deltaY);
     void advUpdate(int nSteps);
     void update(int nSteps);
+    void xUpdate(int nSteps);
     void print();
 
 private:

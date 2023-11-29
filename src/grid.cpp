@@ -64,7 +64,7 @@ void grid::print()
     {
         for (const auto elem : element)
         {
-            std::cout << elem << " ";
+            std::cout << std::fixed << std::setprecision(2) << elem << " ";
         }
         std::cout << std::endl;
     }
@@ -74,11 +74,10 @@ void grid::print()
     {
         for (const auto elem : element)
         {
-            std::cout << elem << " ";
+            std::cout << std::fixed << std::setprecision(2) << elem << " ";
         }
         std::cout << std::endl;
     }
-
 }
 
 void grid::xBorderCondition()
@@ -161,8 +160,23 @@ void grid::update(int nSteps)
         xAdvection(minMod);
         p = uPressure();
         xSources(p);
-        print();
+        //print();
     }
+    print();
+}
+
+void grid::xUpdate(int nSteps)
+{
+    xBorderCondition();
+    yBorderCondition();
+    for (size_t i = 0; i < nSteps; i++)
+    {
+        // xSweep
+        xAdvection(minMod);
+        Mat p = uPressure();
+        xSources(p);
+    }
+    print();
 }
 
 void grid::advUpdate(int nSteps)
@@ -196,7 +210,7 @@ void grid::xAdvection(double func(double))
         double ux;
         for (int x = ghostCells; x < activXCells + ghostCells + 1; ++x)
         {
-            ux = Q2x[x][y] / (Q1[x][y] + 1E-16);
+            ux = 0.5 * (Q2x[x][y] / (Q1[x][y] + 1E-16) + Q2x[x - 1][y] / (Q1[x - 1][y] + 1E-16));
             F1[x] = flux(func, Q1[x - 2][y], Q1[x - 1][y], Q1[x][y], Q1[x + 1][y], ux, deltaT, deltaX);
             F2x[x] = flux(func, Q2x[x - 2][y], Q2x[x - 1][y], Q2x[x][y], Q2x[x + 1][y], ux, deltaT, deltaX);
             F2y[x] = flux(func, Q2y[x - 2][y], Q2y[x - 1][y], Q2y[x][y], Q2y[x + 1][y], ux, deltaT, deltaX);
@@ -230,7 +244,7 @@ void grid::yAdvection(double func(double))
         double uy;
         for (int y = ghostCells; y < activYCells + ghostCells + 1; ++y)
         {
-            uy = Q2y[x][y] / (Q1[x][y] + 1E-16);
+            uy = 0.5 * (Q2y[x][y] / (Q1[x][y] + 1E-16) + Q2y[x][y - 1] / (Q1[x][y - 1] + 1E-16));
             F1[y] = flux(func, Q1[x][y - 2], Q1[x][y - 1], Q1[x][y], Q1[x][y + 1], uy, deltaT, deltaY);
             F2x[y] = flux(func, Q2x[x][y - 2], Q2x[x][y - 1], Q2x[x][y], Q2x[x][y + 1], uy, deltaT, deltaY);
             F2y[y] = flux(func, Q2y[x][y - 2], Q2y[x][y - 1], Q2y[x][y], Q2y[x][y + 1], uy, deltaT, deltaY);
