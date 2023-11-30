@@ -15,18 +15,27 @@ public:
     void print();
 
 private:
+    bool isIsotherm;
+    bool isVisc;
+    bool isIdeal;
+
     int activXCells;
     int activYCells;
     int ghostCells;
     int Nx;
     int Ny;
+
+    double gamma;
+    double cfl;
     double deltaX;
     double deltaY;
     double deltaT;
+
     Mat Q1;
     Mat Q2x;
     Mat Q2y;
     Mat Q3;
+    
     void xAdvection(double func (double));
     void yAdvection(double func (double));
     Mat pressure();
@@ -34,6 +43,7 @@ private:
     Mat vPressure();
     void xSources(Mat p);
     void ySources(Mat p);
+    void updateDeltaT(Mat px, Mat py);
     void xBorderCondition();
     void yBorderCondition();
     Mat pBorderCondition(Mat p);
