@@ -1,13 +1,11 @@
 #include "grid.h"
-#include "fluxes.h"
-#include "pressures.h"
+
 
 grid::grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double deltaY)
 {
     this->deltaX = deltaX;
     this->deltaY = deltaY;
     cfl = 0.7;
-    gamma = 1.4;
     this->deltaT = 0.02;
     if (!QOne.empty())
     {
@@ -141,47 +139,6 @@ Mat grid::pBorderCondition(Mat p)
     return p;
 }
 
-void grid::update(int nSteps)
-{
-    xBorderCondition();
-    yBorderCondition();
-    for (size_t i = 0; i < nSteps; i++)
-    {
-        // xSweep ySweep
-        xAdvection(minMod);
-        Mat px = uPressure();
-        xSources(px);
-        yAdvection(minMod);
-        Mat py = vPressure();
-        ySources(py);
-
-        // ySweep xSweep
-        yAdvection(minMod);
-        px = vPressure();
-        ySources(px);
-        xAdvection(minMod);
-        py = uPressure();
-        xSources(py);
-        updateDeltaT(px, py);
-        // print();
-    }
-    print();
-}
-
-void grid::xUpdate(int nSteps)
-{
-    xBorderCondition();
-    yBorderCondition();
-    for (size_t i = 0; i < nSteps; i++)
-    {
-        // xSweep
-        xAdvection(minMod);
-        Mat p = uPressure();
-        xSources(p);
-    }
-    print();
-}
-
 void grid::advUpdate(int nSteps)
 {
     xBorderCondition();
@@ -265,137 +222,4 @@ void grid::yAdvection(double func(double))
     }
     xBorderCondition();
     yBorderCondition();
-}
-
-Mat grid::pressure()
-{
-    Mat p(Nx, std::vector<double>(Ny, 0.0));
-    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
-    {
-        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
-        {
-            p[x][y] = idealPressure(1.4, Q1[x][y], Q2x[x][y], Q2y[x][y], Q3[x][y]);
-        }
-    }
-    return pBorderCondition(p);
-}
-
-Mat grid::uPressure()
-{
-    Mat p(Nx, std::vector<double>(Ny, 0.0));
-    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
-    {
-        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
-        {
-            p[x][y] = viscIdealPressure(2.0, gamma, Q1[x][y], Q2x[x][y], Q2y[x][y], Q3[x][y], Q1[x - 1][y], Q2x[x - 1][y], Q1[x + 1][y], Q2x[x + 1][y]);
-        }
-    }
-    return pBorderCondition(p);
-}
-
-Mat grid::vPressure()
-{
-    Mat p(Nx, std::vector<double>(Ny, 0.0));
-    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
-    {
-        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
-        {
-            p[x][y] = viscIdealPressure(2.0, gamma, Q1[x][y], Q2x[x][y], Q2y[x][y], Q3[x][y], Q1[x][y - 1], Q2y[x][y - 1], Q1[x][y + 1], Q2y[x][y + 1]);
-        }
-    }
-    return pBorderCondition(p);
-}
-
-void grid::xSources(Mat p)
-{
-    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
-    {
-        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
-        {
-            Q2x[x][y] -= deltaT / (2 * deltaX) * (p[x + 1][y] - p[x - 1][y]);
-            Q3[x][y] -= deltaT / (2 * deltaX) * (p[x + 1][y] * Q2x[x + 1][y] / (Q1[x + 1][y] + 1E-16) - p[x - 1][y] * Q2x[x - 1][y] / (Q1[x - 1][y] + 1E-16));
-        }
-    }
-    xBorderCondition();
-    yBorderCondition();
-}
-
-void grid::ySources(Mat p)
-{
-    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
-    {
-        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
-        {
-            Q2y[x][y] -= deltaT / (2 * deltaY) * (p[x][y + 1] - p[x][y - 1]);
-            Q3[x][y] -= deltaT / (2 * deltaY) * (p[x][y + 1] * Q2y[x][y + 1] / (Q1[x][y + 1] + 1E-16) - p[x][y - 1] * Q2y[x][y - 1] / (Q1[x][y - 1] + 1E-16));
-        }
-    }
-    xBorderCondition();
-    yBorderCondition();
-}
-
-void grid::updateDeltaT(Mat px, Mat py)
-{
-    double nuX = 0.0;
-    double nuY = 0.0;
-    double temp1;
-    double temp2;
-    if (isIsotherm)
-    {
-        for (int y = ghostCells; y < activYCells + ghostCells; ++y)
-        {
-            for (int x = ghostCells; x < activXCells + ghostCells; ++x)
-            {
-                temp1 = 1.0 + abs(Q2x[x][y] / (Q1[x][y] + 1E-16)); // |cs_x| + |u_x|
-                temp2 = 1.0 + abs(Q2y[x][y] / (Q1[x][y] + 1E-16)); // |cs_y| + |u_y|
-                if (nuX < temp1)
-                {
-                    nuX = temp1;
-                }
-                if (nuY < temp2)
-                {
-                    nuY = temp2;
-                }
-            }
-        }
-    }
-    else if (isVisc)
-    {
-        for (int y = ghostCells; y < activYCells + ghostCells; ++y)
-        {
-            for (int x = ghostCells; x < activXCells + ghostCells; ++x)
-            {
-                temp1 = std::sqrt(gamma * px[x][y] / (Q1[x][y] + 1E-16)) + abs(Q2x[x][y] / (Q1[x][y] + 1E-16)); // |cs_x| + |u_x|
-                temp2 = std::sqrt(gamma * py[x][y] / (Q1[x][y] + 1E-16)) + abs(Q2y[x][y] / (Q1[x][y] + 1E-16)); // |cs_y| + |u_y|
-                if (nuX < temp1)
-                {
-                    nuX = temp1;
-                }
-                if (nuY < temp2)
-                {
-                    nuY = temp2;
-                }
-            }
-        }
-    }
-    else
-    {
-        for (int y = ghostCells; y < activYCells + ghostCells; ++y)
-        {
-            for (int x = ghostCells; x < activXCells + ghostCells; ++x)
-            {
-                temp1 = std::sqrt(gamma * px[x][y] / (Q1[x][y] + 1E-16)) + abs(Q2x[x][y] / (Q1[x][y] + 1E-16)); // |cs_x| + |u_x|
-                temp2 = std::sqrt(gamma * px[x][y] / (Q1[x][y] + 1E-16)) + abs(Q2y[x][y] / (Q1[x][y] + 1E-16)); // |cs_y| + |u_y|
-                if (nuX < temp1)
-                {
-                    nuX = temp1;
-                }
-                if (nuY < temp2)
-                {
-                    nuY = temp2;
-                }
-            }
-        }
-    }
-    deltaT = cfl * std::min(deltaX / nuX, deltaY / nuY);
 }
