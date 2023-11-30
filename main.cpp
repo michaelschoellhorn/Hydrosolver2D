@@ -1,5 +1,7 @@
 #include "fluxes.h"
-#include "grid.h"
+#include "visc.h"
+#include "ideal.h"
+#include "isotherm.h"
 
 int main()
 {
@@ -26,7 +28,7 @@ int main()
             QThree[i][j] = 2.0;
         }
     }
-    grid A(QOne, QTwox, QTwoy, QThree, 0.1, 0.1);
+    viscSimulation A(QOne, QTwox, QTwoy, QThree, 0.1, 0.1, 2.0);
     A.print();
     A.update(20);
     A.update(20);
