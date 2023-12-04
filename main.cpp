@@ -35,4 +35,5 @@ int main()
     A.print();
     A.update(20);
     A.update(20);
+    A.saveTo("Data.txt");
 }
