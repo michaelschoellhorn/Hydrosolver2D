@@ -2,9 +2,11 @@
 #include "visc.h"
 #include "ideal.h"
 #include "isotherm.h"
+#include "loadData.h"
 
 int main()
 {
+    /*
     Mat QOne(40, std::vector<double>(40, 1.0));
     for (size_t i = 0; i < 20; i++)
     {
@@ -24,6 +26,11 @@ int main()
             QThree[i][j] = 2.0;
         }
     }
+    */
+    Mat QOne = loadFromTxt("startingRho.txt");
+    Mat QTwox = loadFromTxt("startingRhoUx.txt");
+    Mat QTwoy = loadFromTxt("startingRhoUy.txt");
+    Mat QThree = loadFromTxt("startingRhoEps.txt");
     viscSimulation A(QOne, QTwox, QTwoy, QThree, 0.1, 0.1, 2.0);
     A.print();
     A.update(20);
