@@ -62,8 +62,8 @@ void grid::saveTo(std::string saveFile)
     {
         std::cerr << "Can't open saveFile" << saveFile << std::endl; // Error
     }
-    outFile << "NumX Numy CFL deltaX deltaY\n";
-    outFile << activXCells << " " << activYCells << " " << cfl << " " << deltaX << " " << deltaY << std::endl;
+    outFile << "NumX Numy Ghostcells CFL deltaX deltaY\n";
+    outFile << activXCells << " " << activYCells << " " << ghostCells << " " << cfl << " " << deltaX << " " << deltaY << "\n" << std::endl;
     // Print Rho
     for (const auto &row : Q1)
     {
@@ -93,8 +93,9 @@ void grid::saveTo(std::string saveFile)
             outFile << value;
             isFirst = 0;
         }
-        outFile << std::endl;
+        outFile << "\n";
     }
+    outFile << std::endl;
     // Print Rho uy
     for (const auto &row : Q2y)
     {
@@ -108,8 +109,9 @@ void grid::saveTo(std::string saveFile)
             outFile << value;
             isFirst = 0;
         }
-        outFile << std::endl;
+        outFile << "\n";
     }
+    outFile << std::endl;
     // Print Rho epsilon
     for (const auto &row : Q3)
     {
@@ -123,8 +125,9 @@ void grid::saveTo(std::string saveFile)
             outFile << value;
             isFirst = 0;
         }
-        outFile << std::endl;
+        outFile << "\n";
     }
+    outFile << std::endl;
 }
 
 void grid::print()
