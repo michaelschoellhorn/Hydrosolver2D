@@ -1,6 +1,5 @@
 #include "grid.h"
 
-
 grid::grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double deltaY)
 {
     this->deltaX = deltaX;
@@ -53,6 +52,78 @@ grid::grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double del
     else
     {
         std::cout << "QOne is empty" << std::endl;
+    }
+}
+
+void grid::saveTo(std::string saveFile)
+{
+    std::ofstream outFile(saveFile);
+    if (!outFile.is_open()) // Check if file is open
+    {
+        std::cerr << "Can't open saveFile" << saveFile << std::endl; // Error
+    }
+    outFile << "NumX Numy CFL deltaX deltaY\n";
+    outFile << activXCells << " " << activYCells << " " << cfl << " " << deltaX << " " << deltaY << std::endl;
+    // Print Rho
+    for (const auto &row : Q1)
+    {
+        bool isFirst = 1;
+        for (const auto &value : row)
+        {
+            if (!isFirst)
+            {
+                outFile << " ";
+            }
+            outFile << value;
+            isFirst = 0;
+        }
+        outFile << "\n";
+    }
+    outFile << std::endl;
+    // Print Rho ux
+    for (const auto &row : Q2x)
+    {
+        bool isFirst = 1;
+        for (const auto &value : row)
+        {
+            if (!isFirst)
+            {
+                outFile << " ";
+            }
+            outFile << value;
+            isFirst = 0;
+        }
+        outFile << std::endl;
+    }
+    // Print Rho uy
+    for (const auto &row : Q2y)
+    {
+        bool isFirst = 1;
+        for (const auto &value : row)
+        {
+            if (!isFirst)
+            {
+                outFile << " ";
+            }
+            outFile << value;
+            isFirst = 0;
+        }
+        outFile << std::endl;
+    }
+    // Print Rho epsilon
+    for (const auto &row : Q3)
+    {
+        bool isFirst = 1;
+        for (const auto &value : row)
+        {
+            if (!isFirst)
+            {
+                outFile << " ";
+            }
+            outFile << value;
+            isFirst = 0;
+        }
+        outFile << std::endl;
     }
 }
 

@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 #include <iomanip>
 #include "fluxes.h"
 #include "pressures.h"
@@ -11,6 +13,7 @@ class grid
 {
 public:
     grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double deltaY);
+    void saveTo(std::string saveFile);
     void advUpdate(int nSteps);
     void print();
 
