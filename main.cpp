@@ -27,13 +27,13 @@ int main()
         }
     }
     */
-    Mat QOne = loadFromTxt("startingRho.txt");
-    Mat QTwox = loadFromTxt("startingRhoUx.txt");
-    Mat QTwoy = loadFromTxt("startingRhoUy.txt");
-    Mat QThree = loadFromTxt("startingRhoEps.txt");
-    viscSimulation A(QOne, QTwox, QTwoy, QThree, 0.1, 0.1, 2.0);
-    A.print();
-    A.update(20);
-    A.update(20);
-    A.saveTo("Data.txt");
+    Mat QOne = loadFromTxt("startingDistributions/startingRho.txt");
+    Mat QTwox = loadFromTxt("startingDistributions/startingRhoUx.txt");
+    Mat QTwoy = loadFromTxt("startingDistributions/startingRhoUy.txt");
+    Mat QThree = loadFromTxt("startingDistributions/startingRhoEps.txt");
+    viscSimulation A(QOne, QTwox, QTwoy, QThree, 0.01, 0.01, 3.0);
+    //A.print();
+    A.update(50);
+
+    A.saveTo("data.txt");
 }

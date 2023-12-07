@@ -4,8 +4,8 @@ grid::grid(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double del
 {
     this->deltaX = deltaX;
     this->deltaY = deltaY;
-    cfl = 0.7;
-    this->deltaT = 0.02;
+    cfl = 0.5;
+    this->deltaT = 0.005;
     if (!QOne.empty())
     {
         // Get number of rows
@@ -226,17 +226,17 @@ void grid::advUpdate(int nSteps)
         // ySweep xSweep
         yAdvection(minMod);
         xAdvection(minMod);
-        print();
+        //print();
     }
 }
 
 void grid::xAdvection(double func(double))
 {
     // Initialize flux vectors
-    std::vector<double> F1(Nx, 0.0);
-    std::vector<double> F2x(Nx, 0.0);
-    std::vector<double> F2y(Nx, 0.0);
-    std::vector<double> F3(Nx, 0.0);
+    Mat F1(Nx, std::vector<double>(Ny, 0.0));
+    Mat F2x(Nx, std::vector<double>(Ny, 0.0));
+    Mat F2y(Nx, std::vector<double>(Ny, 0.0));
+    Mat F3(Nx, std::vector<double>(Ny, 0.0));
 
     for (int y = ghostCells; y < activYCells + ghostCells; ++y)
     {
@@ -245,19 +245,19 @@ void grid::xAdvection(double func(double))
         for (int x = ghostCells; x < activXCells + ghostCells + 1; ++x)
         {
             ux = 0.5 * (Q2x[x][y] / (Q1[x][y] + 1E-16) + Q2x[x - 1][y] / (Q1[x - 1][y] + 1E-16));
-            F1[x] = flux(func, Q1[x - 2][y], Q1[x - 1][y], Q1[x][y], Q1[x + 1][y], ux, deltaT, deltaX);
-            F2x[x] = flux(func, Q2x[x - 2][y], Q2x[x - 1][y], Q2x[x][y], Q2x[x + 1][y], ux, deltaT, deltaX);
-            F2y[x] = flux(func, Q2y[x - 2][y], Q2y[x - 1][y], Q2y[x][y], Q2y[x + 1][y], ux, deltaT, deltaX);
-            F3[x] = flux(func, Q3[x - 2][y], Q3[x - 1][y], Q3[x][y], Q3[x + 1][y], ux, deltaT, deltaX);
+            F1[x][y] = flux(func, Q1[x - 2][y], Q1[x - 1][y], Q1[x][y], Q1[x + 1][y], ux, deltaT, deltaX);
+            F2x[x][y] = flux(func, Q2x[x - 2][y], Q2x[x - 1][y], Q2x[x][y], Q2x[x + 1][y], ux, deltaT, deltaX);
+            F2y[x][y] = flux(func, Q2y[x - 2][y], Q2y[x - 1][y], Q2y[x][y], Q2y[x + 1][y], ux, deltaT, deltaX);
+            F3[x][y] = flux(func, Q3[x - 2][y], Q3[x - 1][y], Q3[x][y], Q3[x + 1][y], ux, deltaT, deltaX);
         }
         // calculating Qhalf
         for (int x = ghostCells; x < activXCells + ghostCells; ++x)
         {
 
-            Q1[x][y] += deltaT / deltaX * (F1[x] - F1[x + 1]);
-            Q2x[x][y] += deltaT / deltaX * (F2x[x] - F2x[x + 1]);
-            Q2y[x][y] += deltaT / deltaX * (F2y[x] - F2y[x + 1]);
-            Q3[x][y] += deltaT / deltaX * (F3[x] - F3[x + 1]);
+            Q1[x][y] += deltaT / deltaX * (F1[x][y] - F1[x + 1][y]);
+            Q2x[x][y] += deltaT / deltaX * (F2x[x][y] - F2x[x + 1][y]);
+            Q2y[x][y] += deltaT / deltaX * (F2y[x][y] - F2y[x + 1][y]);
+            Q3[x][y] += deltaT / deltaX * (F3[x][y] - F3[x + 1][y]);
         }
     }
     xBorderCondition();
@@ -267,10 +267,10 @@ void grid::xAdvection(double func(double))
 void grid::yAdvection(double func(double))
 {
     // Initialize flux vectors
-    std::vector<double> F1(Ny, 0.0);
-    std::vector<double> F2x(Ny, 0.0);
-    std::vector<double> F2y(Ny, 0.0);
-    std::vector<double> F3(Ny, 0.0);
+    Mat F1(Nx, std::vector<double>(Ny, 0.0));
+    Mat F2x(Nx, std::vector<double>(Ny, 0.0));
+    Mat F2y(Nx, std::vector<double>(Ny, 0.0));
+    Mat F3(Nx, std::vector<double>(Ny, 0.0));
 
     for (int x = ghostCells; x < activXCells + ghostCells; ++x)
     {
@@ -279,19 +279,19 @@ void grid::yAdvection(double func(double))
         for (int y = ghostCells; y < activYCells + ghostCells + 1; ++y)
         {
             uy = 0.5 * (Q2y[x][y] / (Q1[x][y] + 1E-16) + Q2y[x][y - 1] / (Q1[x][y - 1] + 1E-16));
-            F1[y] = flux(func, Q1[x][y - 2], Q1[x][y - 1], Q1[x][y], Q1[x][y + 1], uy, deltaT, deltaY);
-            F2x[y] = flux(func, Q2x[x][y - 2], Q2x[x][y - 1], Q2x[x][y], Q2x[x][y + 1], uy, deltaT, deltaY);
-            F2y[y] = flux(func, Q2y[x][y - 2], Q2y[x][y - 1], Q2y[x][y], Q2y[x][y + 1], uy, deltaT, deltaY);
-            F3[y] = flux(func, Q3[x][y - 2], Q3[x][y - 1], Q3[x][y], Q3[x][y + 1], uy, deltaT, deltaY);
+            F1[x][y] = flux(func, Q1[x][y - 2], Q1[x][y - 1], Q1[x][y], Q1[x][y + 1], uy, deltaT, deltaY);
+            F2x[x][y] = flux(func, Q2x[x][y - 2], Q2x[x][y - 1], Q2x[x][y], Q2x[x][y + 1], uy, deltaT, deltaY);
+            F2y[x][y] = flux(func, Q2y[x][y - 2], Q2y[x][y - 1], Q2y[x][y], Q2y[x][y + 1], uy, deltaT, deltaY);
+            F3[x][y] = flux(func, Q3[x][y - 2], Q3[x][y - 1], Q3[x][y], Q3[x][y + 1], uy, deltaT, deltaY);
         }
         // calculating Qhalf
         for (int y = ghostCells; y < activYCells + ghostCells; ++y)
         {
 
-            Q1[x][y] += deltaT / deltaY * (F1[y] - F1[y + 1]);
-            Q2x[x][y] += deltaT / deltaY * (F2x[y] - F2x[y + 1]);
-            Q2y[x][y] += deltaT / deltaY * (F2y[y] - F2y[y + 1]);
-            Q3[x][y] += deltaT / deltaY * (F3[y] - F3[y + 1]);
+            Q1[x][y] += deltaT / deltaY * (F1[x][y] - F1[x][y + 1]);
+            Q2x[x][y] += deltaT / deltaY * (F2x[x][y] - F2x[x][y + 1]);
+            Q2y[x][y] += deltaT / deltaY * (F2y[x][y] - F2y[x][y + 1]);
+            Q3[x][y] += deltaT / deltaY * (F3[x][y] - F3[x][y + 1]);
         }
     }
     xBorderCondition();

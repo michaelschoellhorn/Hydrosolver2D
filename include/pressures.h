@@ -16,9 +16,9 @@ inline double viscIdealPressure(double visc, double gamma, double rho, double rh
     double p = idealPressure(gamma, rho, rhoU, rhoV, rhoE);
     double uP1 = rhoUP1 / (rhoP1 + 1E-16);
     double uMin1 = rhoUMin1 / (rhoMin1 + 1E-16);
-    if (abs(uP1) <= abs(uMin1))
+    if (uP1 <= uMin1)
     {
-        p += 0.25 * pow(visc, 2.0) * pow(abs(uP1) - abs(uMin1), 2.0) * rho;
+        p += 0.25 * pow(visc, 2.0) * pow(uP1 - uMin1, 2.0) * rho;
     }
     return p;
 }
