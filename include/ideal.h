@@ -15,6 +15,7 @@ public:
     void update(int nSteps);
     void xUpdate(int nSteps);
     using grid::print;
+    using grid::saveTo;
 
 private:
     double gamma;

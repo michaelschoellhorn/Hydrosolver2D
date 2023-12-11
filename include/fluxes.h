@@ -2,7 +2,7 @@
 #include <cmath>
 #include <algorithm>
 
-inline double heavySide(const double x)
+inline double flipFlop(const double x)
 {
     if (x >= 0.0)
     {
@@ -10,13 +10,14 @@ inline double heavySide(const double x)
     }
     else
     {
-        return 0.0;
+        return -1.0;
     }
 }
 
 inline double r(double Qmin2, double Qmin1, double Q, double Qp1, double u)
 {
-    return heavySide(u) * (Qmin1 - Qmin2) / (Q - Qmin1 + 1E-16) + heavySide(-u) * (Qp1 - Q) / (Q - Qmin1 + 1E-16);
+
+    return (u >= 0) * (Qmin1 - Qmin2) / (Q - Qmin1 + 1E-16) + (u < 0) * (Qp1 - Q) / (Q - Qmin1 + 1E-16);
 }
 
 inline double donorCell(double r)
@@ -75,5 +76,5 @@ inline double vanLeer(double r)
 
 inline double flux(double function(double), double Qmin2, double Qmin1, double Q, double Qp1, double u, double deltaT, double deltaX)
 {
-    return 0.5 * u * (2.0 * heavySide(u) * Qmin1 + 2 * heavySide(-u) * Q) + 0.5 * std::abs(u) * (1.0 - std::abs(u * deltaT / deltaX)) * function(r(Qmin2, Qmin1, Q, Qp1, u)) * (Q - Qmin1);
+    return 0.5 * u * ((1 + flipFlop(u)) * Qmin1 + (1 - flipFlop(u)) * Q) + 0.5 * std::abs(u) * (1.0 - std::abs(u * deltaT / deltaX)) * function(r(Qmin2, Qmin1, Q, Qp1, u)) * (Q - Qmin1);
 }

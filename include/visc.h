@@ -12,7 +12,9 @@ public:
     viscSimulation(Mat QOne, Mat QTwox, Mat QTwoy, Mat QThree, double deltaX, double deltaY, double visc);
     void update(int nSteps);
     void xUpdate(int nSteps);
+    using grid::advUpdate;
     using grid::print;
+    using grid::saveTo;
 
 private:
     double gamma;

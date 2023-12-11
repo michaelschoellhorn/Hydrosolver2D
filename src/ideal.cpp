@@ -26,7 +26,7 @@ void idealSimulation::update(int nSteps)
         xAdvection(minMod);
         p = pressure();
         xSources(p);
-        updateDeltaT(p);
+        //updateDeltaT(p);
         // print();
     }
     print();

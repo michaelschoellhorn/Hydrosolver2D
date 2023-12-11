@@ -3,6 +3,11 @@
 
 # Local workspace files
 ToDo.txt
+src/gridLegacy.cpp
+src/euler2d.cpp
+include/gridLegacy.h
+include/euler2d.h
+data.txt
 
 
 # Compiled Object files

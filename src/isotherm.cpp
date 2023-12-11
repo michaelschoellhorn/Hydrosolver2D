@@ -26,7 +26,7 @@ void isothermalSimulation::update(int nSteps)
         xAdvection(minMod);
         p = pressure();
         xSources(p);
-        updateDeltaT();
+        //updateDeltaT();
         // print();
     }
     print();

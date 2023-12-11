@@ -13,24 +13,24 @@ void viscSimulation::update(int nSteps)
     for (size_t i = 0; i < nSteps; i++)
     {
         // xSweep ySweep
-        xAdvection(minMod);
+        xAdvection(donorCell);
         Mat px = uPressure();
         xSources(px);
-        yAdvection(minMod);
+        yAdvection(donorCell);
         Mat py = vPressure();
         ySources(py);
 
         // ySweep xSweep
-        yAdvection(minMod);
+        yAdvection(donorCell);
         px = vPressure();
         ySources(px);
-        xAdvection(minMod);
+        xAdvection(donorCell);
         py = uPressure();
         xSources(py);
-        updateDeltaT(px, py);
+        // updateDeltaT(px, py);
         // print();
     }
-    print();
+    //print();
 }
 
 void viscSimulation::xUpdate(int nSteps)
@@ -44,7 +44,7 @@ void viscSimulation::xUpdate(int nSteps)
         Mat p = uPressure();
         xSources(p);
     }
-    print();
+    //print();
 }
 
 Mat viscSimulation::uPressure()
@@ -79,8 +79,14 @@ void viscSimulation::xSources(Mat p)
     {
         for (int x = ghostCells; x < activXCells + ghostCells; ++x)
         {
-            Q2x[x][y] -= deltaT / (2 * deltaX) * (p[x + 1][y] - p[x - 1][y]);
             Q3[x][y] -= deltaT / (2 * deltaX) * (p[x + 1][y] * Q2x[x + 1][y] / (Q1[x + 1][y] + 1E-16) - p[x - 1][y] * Q2x[x - 1][y] / (Q1[x - 1][y] + 1E-16));
+        }
+    }
+    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
+    {
+        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
+        {
+        Q2x[x][y] -= deltaT / (2 * deltaX) * (p[x + 1][y] - p[x - 1][y]);
         }
     }
     xBorderCondition();
@@ -96,6 +102,13 @@ void viscSimulation::ySources(Mat p)
             Q2y[x][y] -= deltaT / (2 * deltaY) * (p[x][y + 1] - p[x][y - 1]);
             Q3[x][y] -= deltaT / (2 * deltaY) * (p[x][y + 1] * Q2y[x][y + 1] / (Q1[x][y + 1] + 1E-16) - p[x][y - 1] * Q2y[x][y - 1] / (Q1[x][y - 1] + 1E-16));
         }
+    }
+    for (int y = ghostCells; y < activYCells + ghostCells; ++y)
+    {
+        for (int x = ghostCells; x < activXCells + ghostCells; ++x)
+        {
+            Q2y[x][y] -= deltaT / (2 * deltaY) * (p[x][y + 1] - p[x][y - 1]);
+            }
     }
     xBorderCondition();
     yBorderCondition();

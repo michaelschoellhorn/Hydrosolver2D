@@ -2,30 +2,17 @@
 #include "visc.h"
 #include "ideal.h"
 #include "isotherm.h"
+#include "loadData.h"
 
 int main()
 {
-    Mat QOne(40, std::vector<double>(40, 1.0));
-    for (size_t i = 0; i < 20; i++)
-    {
-        for (size_t j = 0; j < 20; j++)
-        {
-            QOne[i][j] = 2.0;
-        }
-        
-    }
-    Mat QTwox(40, std::vector<double>(40, 0.0));
-    Mat QTwoy(40, std::vector<double>(40, 0.0));
-    Mat QThree(40, std::vector<double>(40, 1.0));
-    for (size_t i = 0; i < 20; i++)
-    {
-        for (size_t j = 0; j < 20; j++)
-        {
-            QThree[i][j] = 2.0;
-        }
-    }
-    viscSimulation A(QOne, QTwox, QTwoy, QThree, 0.1, 0.1, 2.0);
-    A.print();
-    A.update(20);
-    A.update(20);
+    Mat QOne = loadFromTxt("startingDistributions/2DShocktubeQ1.txt");
+    Mat QTwox = loadFromTxt("startingDistributions/2DShocktubeQ2x.txt");
+    Mat QTwoy = loadFromTxt("startingDistributions/2DShocktubeQ2y.txt");
+    Mat QThree = loadFromTxt("startingDistributions/2DShocktubeQ3.txt");
+    viscSimulation A(QOne, QTwox, QTwoy, QThree, 0.01, 0.01, 3.0);
+    //A.print();
+    A.update(50);
+
+    A.saveTo("data.txt");
 }
