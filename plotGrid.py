@@ -39,6 +39,7 @@ oneDQ1 = Q1[:, 5]
 oneDQ2x = Q2x[:, 5]
 oneDQ3 = Q3[:, 5]
 #plot1D(oneDQ1)
-plotGrid(Q1[Nghost:Nx+Nghost, Nghost:Ny+Nghost], 'Cb', 'Q1', 20, 20)
-plotGrid(Q2x[Nghost:Nx+Nghost, Nghost:Ny+Nghost], 'Cb', 'Q2x', 20, 20)
-plotGrid(Q3[Nghost:Nx+Nghost, Nghost:Ny+Nghost], 'Cb', 'Q3', 20, 20)
+plotGrid(Q1[Nghost:Nx+Nghost, Nghost:Ny+Nghost], r'$\rho$', 'mass density', 4, 4)
+plotGrid(Q2x[Nghost:Nx+Nghost, Nghost:Ny+Nghost]/Q1[Nghost:Nx+Nghost, Nghost:Ny+Nghost], r'$u_{x}$', 'velocity in x direction', 4, 4)
+plotGrid(Q2y[Nghost:Nx+Nghost, Nghost:Ny+Nghost]/Q1[Nghost:Nx+Nghost, Nghost:Ny+Nghost], r'$u_{y}$', 'velocity in y direction', 4, 4)
+plotGrid(Q3[Nghost:Nx+Nghost, Nghost:Ny+Nghost], r'$\epsilon$', 'energy density', 4, 4)
