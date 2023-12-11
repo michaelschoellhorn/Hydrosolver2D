@@ -18,14 +18,14 @@ def loadData(fileName):
 
     return Nx, Ny, Nghost, deltaX, deltaY, Q1, Q2x, Q2y, Q3
 
+def plot1D(oneDArray):
+    fig, ax = plt.subplots()
+    ax.plot(oneDArray)
+    plt.show()
+    
 
 Nx, Ny, Nghost, deltaX, deltay, Q1, Q2x, Q2y, Q3 = loadData('Data.txt')
 oneDQ1 = Q1[:, 5]
 oneDQ2x = Q2x[:, 5]
 oneDQ3 = Q3[:, 5]
-plt.plot(oneDQ1, scaley=True)
-plt.show()
-plt.plot(oneDQ2x, scaley=True)
-plt.show()
-plt.plot(oneDQ3, scaley=True)
-plt.show()
+plot1D(oneDQ1)
