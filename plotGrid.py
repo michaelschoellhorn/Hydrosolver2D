@@ -22,10 +22,23 @@ def plot1D(oneDArray):
     fig, ax = plt.subplots()
     ax.plot(oneDArray)
     plt.show()
-    
+
+
+def plotGrid(twoDArray, colorbarTitle, title, XMax, YMax):
+    fig, ax = plt.subplots()
+    im = ax.imshow(twoDArray, cmap=plt.cm.viridis, origin='lower', aspect='auto', extent=(0, XMax, 0, YMax))
+    fig.colorbar(im, label=colorbarTitle, ax=ax)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_title(title)
+    plt.show()
+
 
 Nx, Ny, Nghost, deltaX, deltay, Q1, Q2x, Q2y, Q3 = loadData('Data.txt')
 oneDQ1 = Q1[:, 5]
 oneDQ2x = Q2x[:, 5]
 oneDQ3 = Q3[:, 5]
-plot1D(oneDQ1)
+#plot1D(oneDQ1)
+plotGrid(Q1[Nghost:Nx+Nghost, Nghost:Ny+Nghost], 'Cb', 'Q1', 20, 20)
+plotGrid(Q2x[Nghost:Nx+Nghost, Nghost:Ny+Nghost], 'Cb', 'Q2x', 20, 20)
+plotGrid(Q3[Nghost:Nx+Nghost, Nghost:Ny+Nghost], 'Cb', 'Q3', 20, 20)
