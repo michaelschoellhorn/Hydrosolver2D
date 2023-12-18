@@ -35,10 +35,7 @@ def plotGrid(twoDArray, colorbarTitle, title, XMax, YMax):
 
 
 Nx, Ny, Nghost, deltaX, deltay, Q1, Q2x, Q2y, Q3 = loadData('Data.txt')
-oneDQ1 = Q1[:, 5]
-oneDQ2x = Q2x[:, 5]
-oneDQ3 = Q3[:, 5]
-#plot1D(oneDQ1)
+
 plotGrid(Q1[Nghost:Nx+Nghost, Nghost:Ny+Nghost], r'$\rho$', 'mass density', 4, 4)
 plotGrid(Q2x[Nghost:Nx+Nghost, Nghost:Ny+Nghost]/Q1[Nghost:Nx+Nghost, Nghost:Ny+Nghost], r'$u_{x}$', 'velocity in x direction', 4, 4)
 plotGrid(Q2y[Nghost:Nx+Nghost, Nghost:Ny+Nghost]/Q1[Nghost:Nx+Nghost, Nghost:Ny+Nghost], r'$u_{y}$', 'velocity in y direction', 4, 4)

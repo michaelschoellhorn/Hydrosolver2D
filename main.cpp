@@ -12,7 +12,7 @@ int main()
     Mat QThree = loadFromTxt("startingDistributions/2DShocktubeQ3.txt");
     viscSimulation A(QOne, QTwox, QTwoy, QThree, 0.01, 0.01, 3.0);
     //A.print();
-    A.update(50);
+    A.update(20);
 
     A.saveTo("data.txt");
 }

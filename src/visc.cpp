@@ -27,7 +27,7 @@ void viscSimulation::update(int nSteps)
         xAdvection(donorCell);
         py = uPressure();
         xSources(py);
-        // updateDeltaT(px, py);
+        updateDeltaT(px, py);
         // print();
     }
     //print();
